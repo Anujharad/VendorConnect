@@ -5,9 +5,10 @@ import {
   signOut,
   updateProfile
 } from 'firebase/auth';
-import { auth } from './firebase';
-import { createUserProfile } from './firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
 
+// Register new user
 export const registerUser = async (email, password, userData) => {
   try {
     // Create user account
@@ -19,35 +20,53 @@ export const registerUser = async (email, password, userData) => {
       displayName: userData.name
     });
 
-    // Create user profile in Firestore
-    await createUserProfile(user.uid, {
-      name: userData.name,
-      email: userData.email,
-      userType: userData.userType,
-      phone: userData.phone,
-      address: userData.address,
-      createdAt: new Date().toISOString()
+    // Save additional user data to Firestore
+    await setDoc(doc(db, 'users', user.uid), {
+      ...userData,
+      email: user.email,
+      uid: user.uid,
+      createdAt: new Date().toISOString(),
+      favorites: []
     });
 
-    return user;
+    return { success: true, user };
   } catch (error) {
-    throw error;
+    return { success: false, error: error.message };
   }
 };
 
+// Login user
 export const loginUser = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    return { success: true, user: userCredential.user };
   } catch (error) {
-    throw error;
+    return { success: false, error: error.message };
   }
 };
 
+// Logout user
 export const logoutUser = async () => {
   try {
     await signOut(auth);
+    return { success: true };
   } catch (error) {
-    throw error;
+    return { success: false, error: error.message };
+  }
+};
+
+// Get user profile
+export const getUserProfile = async (uid) => {
+  try {
+    const docRef = doc(db, 'users', uid);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return { success: true, data: docSnap.data() };
+    } else {
+      return { success: false, error: 'User not found' };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 };

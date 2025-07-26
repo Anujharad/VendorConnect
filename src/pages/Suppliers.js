@@ -1,204 +1,132 @@
 // src/pages/Suppliers.js
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useFavorites } from '../hooks/useFavorites';
+import { useLocation } from 'react-router-dom';
 import SupplierFilters from '../components/supplier/SupplierFilters';
-import SupplierCard from '../components/supplier/SupplierCard';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import { getSuppliers } from '../services/firestore';
+import SupplierList from '../components/supplier/SupplierList';                                                                                                                                                                                             
+import { useSuppliers } from '../hooks/useSuppliers';
+import { useFavorites } from '../hooks/useFavorites';
+import { Filter, X } from 'lucide-react';
 
-const Suppliers = ({ favoritesOnly = false }) => {
-  const { currentUser } = useAuth();
-  const { favorites, loading: favoritesLoading } = useFavorites();
-  
-  const [suppliers, setSuppliers] = useState([]);
-  const [filteredSuppliers, setFilteredSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+const Suppliers = () => {
+  const location = useLocation();
+  const { suppliers, loading } = useSuppliers();
+  const { favorites } = useFavorites();
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
+    search: '',
     category: '',
     city: '',
-    rating: ''
+    rating: 0,
+    distance: 0,
+    verifiedOnly: false
   });
 
-  // Fetch suppliers from Firestore
+  // Check if we should show only favorites
   useEffect(() => {
-    const fetchSuppliers = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        
-        if (favoritesOnly) {
-          // Show favorites only
-          if (currentUser && !favoritesLoading) {
-            setSuppliers(favorites);
-            setFilteredSuppliers(favorites);
-          }
-        } else {
-          // Fetch all suppliers
-          const suppliersData = await getSuppliers();
-          setSuppliers(suppliersData);
-          setFilteredSuppliers(suppliersData);
-        }
-      } catch (err) {
-        setError('Failed to load suppliers. Please try again.');
-        console.error('Error fetching suppliers:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSuppliers();
-  }, [favoritesOnly, currentUser, favorites, favoritesLoading]);
-
-  // Apply filters and search
-  const applyFilters = () => {
-    let filtered = [...suppliers];
-
-    // Apply search filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(supplier => 
-        supplier.name.toLowerCase().includes(searchLower) ||
-        supplier.category.toLowerCase().includes(searchLower) ||
-        (supplier.products && supplier.products.some(product => 
-          product.toLowerCase().includes(searchLower)
-        )) ||
-        (supplier.description && supplier.description.toLowerCase().includes(searchLower))
-      );
+    const params = new URLSearchParams(location.search);
+    if (params.get('favorites') === 'true') {
+      // Filter suppliers to show only favorites
+      // This would be handled in the SupplierList component
     }
+  }, [location]);
 
-    // Apply category filter
-    if (filters.category) {
-      filtered = filtered.filter(supplier => supplier.category === filters.category);
-    }
-
-    // Apply city filter
-    if (filters.city) {
-      filtered = filtered.filter(supplier => supplier.address?.city === filters.city);
-    }
-
-    // Apply rating filter
-    if (filters.rating) {
-      const minRating = parseFloat(filters.rating);
-      filtered = filtered.filter(supplier => supplier.rating >= minRating);
-    }
-
-    setFilteredSuppliers(filtered);
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
   };
 
-  // Handle supplier card click
-  const handleSupplierClick = (supplier) => {
-    // TODO: Navigate to supplier detail page or open modal
-    console.log('Clicked supplier:', supplier);
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      category: '',
+      city: '',
+      rating: 0,
+      distance: 0,
+      verifiedOnly: false
+    });
   };
 
-  if (loading) {
-    return <LoadingSpinner size="lg" text="Loading suppliers..." />;
-  }
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+
+  const filteredSuppliers = React.useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const showFavoritesOnly = params.get('favorites') === 'true';
+    
+    if (showFavoritesOnly) {
+      return suppliers.filter(supplier => favorites.includes(supplier.id));
+    }
+    
+    return suppliers;
+  }, [suppliers, favorites, location.search]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {favoritesOnly ? 'Your Favorite Suppliers' : 'Find Suppliers'}
-        </h1>
-        <p className="text-gray-600">
-          {favoritesOnly 
-            ? 'Manage your saved suppliers and connect with them easily'
-            : 'Discover trusted local suppliers for your business needs'
-          }
-        </p>
-      </div>
-
-      {/* Show filters only if not favorites page */}
-      {!favoritesOnly && (
-        <SupplierFilters
-          filters={filters}
-          onFilterChange={setFilters}
-          onSearch={applyFilters}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
-      )}
-
-      {/* Search for favorites page */}
-      {favoritesOnly && (
-        <div className="mb-6">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search your favorite suppliers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-4 py-2 pl-10 focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-            />
-            <div className="absolute left-3 top-2.5">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
-      )}
-
-      {/* Results Count */}
-      <div className="mb-6">
-        <p className="text-gray-600">
-          {filteredSuppliers.length === 0 
-            ? 'No suppliers found'
-            : `Showing ${filteredSuppliers.length} supplier${filteredSuppliers.length !== 1 ? 's' : ''}`
-          }
-          {filters.category || filters.city || filters.rating || searchTerm ? ' matching your criteria' : ''}
-        </p>
-      </div>
-
-      {/* Suppliers Grid */}
-      {filteredSuppliers.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {favoritesOnly ? 'No favorite suppliers yet' : 'No suppliers found'}
-          </h3>
-          <p className="text-gray-500 mb-4">
-            {favoritesOnly 
-              ? 'Start adding suppliers to your favorites to see them here'
-              : 'Try adjusting your search criteria or filters'
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {location.search.includes('favorites=true') ? 'Your Favorite Suppliers' : 'Find Suppliers'}
+          </h1>
+          <p className="text-gray-600">
+            {location.search.includes('favorites=true') 
+              ? 'Suppliers you have saved for quick access'
+              : 'Discover trusted suppliers for your business needs'
             }
           </p>
-          {favoritesOnly && (
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Mobile Filter Button */}
+          <div className="lg:hidden">
             <button
-              onClick={() => window.location.href = '/suppliers'}
-              className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
+              onClick={toggleFilters}
+              className="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50"
             >
-              Browse All Suppliers
+              <Filter size={16} />
+              <span>Filters</span>
             </button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSuppliers.map((supplier) => (
-            <SupplierCard
-              key={supplier.id}
-              supplier={supplier}
-              onClick={handleSupplierClick}
+          </div>
+
+          {/* Filters Sidebar */}
+          <div className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            {showFilters && (
+              <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={toggleFilters}>
+                <div className="bg-white w-80 h-full p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">Filters</h3>
+                    <button onClick={toggleFilters}>
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <SupplierFilters
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onClearFilters={handleClearFilters}
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="hidden lg:block">
+              <SupplierFilters
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+              />
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            <SupplierList
+              suppliers={filteredSuppliers}
+              loading={loading}
+              filters={filters}
             />
-          ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

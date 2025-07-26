@@ -1,135 +1,125 @@
 // src/services/firestore.js
 import { 
-  doc, 
-  getDoc, 
-  setDoc, 
   collection, 
+  doc, 
   getDocs, 
-  query, 
-  where, 
+  getDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  query,
+  where,
   orderBy,
-  updateDoc,
-  arrayUnion,
-  arrayRemove
+  limit
 } from 'firebase/firestore';
 import { db } from './firebase';
 
-// User Profile Functions
-export const createUserProfile = async (userId, userData) => {
+// Get all suppliers
+export const getSuppliers = async () => {
   try {
-    await setDoc(doc(db, 'users', userId), userData);
-    return userData;
-  } catch (error) {
-    console.error('Error creating user profile:', error);
-    throw error;
-  }
-};
-
-export const getUserProfile = async (userId) => {
-  try {
-    const docRef = doc(db, 'users', userId);
-    const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error getting user profile:', error);
-    throw error;
-  }
-};
-
-// Supplier Functions
-export const getSuppliers = async (filters = {}) => {
-  try {
-    let q = collection(db, 'suppliers');
-    
-    // Apply filters
-    if (filters.category) {
-      q = query(q, where('category', '==', filters.category));
-    }
-    
-    if (filters.city) {
-      q = query(q, where('address.city', '==', filters.city));
-    }
-    
-    // Add ordering
-    q = query(q, orderBy('rating', 'desc'));
-    
-    const querySnapshot = await getDocs(q);
+    const suppliersRef = collection(db, 'suppliers');
+    const snapshot = await getDocs(suppliersRef);
     const suppliers = [];
     
-    querySnapshot.forEach((doc) => {
+    snapshot.forEach((doc) => {
       suppliers.push({ id: doc.id, ...doc.data() });
     });
     
-    return suppliers;
+    return { success: true, data: suppliers };
   } catch (error) {
-    console.error('Error getting suppliers:', error);
-    throw error;
+    return { success: false, error: error.message };
   }
 };
 
-export const getSupplierById = async (supplierId) => {
+// Get suppliers by category
+export const getSuppliersByCategory = async (category) => {
+  try {
+    const suppliersRef = collection(db, 'suppliers');
+    const q = query(suppliersRef, where('category', '==', category));
+    const snapshot = await getDocs(q);
+    const suppliers = [];
+    
+    snapshot.forEach((doc) => {
+      suppliers.push({ id: doc.id, ...doc.data() });
+    });
+    
+    return { success: true, data: suppliers };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Get single supplier
+export const getSupplier = async (supplierId) => {
   try {
     const docRef = doc(db, 'suppliers', supplierId);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
+      return { success: true, data: { id: docSnap.id, ...docSnap.data() } };
     } else {
-      return null;
+      return { success: false, error: 'Supplier not found' };
     }
   } catch (error) {
-    console.error('Error getting supplier:', error);
-    throw error;
+    return { success: false, error: error.message };
   }
 };
 
-// Favorites Functions
+// Add supplier to favorites
 export const addToFavorites = async (userId, supplierId) => {
   try {
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      favorites: arrayUnion(supplierId)
-    });
-  } catch (error) {
-    console.error('Error adding to favorites:', error);
-    throw error;
-  }
-};
-
-export const removeFromFavorites = async (userId, supplierId) => {
-  try {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      favorites: arrayRemove(supplierId)
-    });
-  } catch (error) {
-    console.error('Error removing from favorites:', error);
-    throw error;
-  }
-};
-
-// Get user's favorite suppliers
-export const getFavoriteSuppliers = async (userId) => {
-  try {
-    const userProfile = await getUserProfile(userId);
-    if (!userProfile?.favorites) return [];
+    const userDoc = await getDoc(userRef);
     
-    const favoriteSuppliers = [];
-    for (const supplierId of userProfile.favorites) {
-      const supplier = await getSupplierById(supplierId);
-      if (supplier) {
-        favoriteSuppliers.push(supplier);
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const favorites = userData.favorites || [];
+      
+      if (!favorites.includes(supplierId)) {
+        favorites.push(supplierId);
+        await updateDoc(userRef, { favorites });
       }
     }
     
-    return favoriteSuppliers;
+    return { success: true };
   } catch (error) {
-    console.error('Error getting favorite suppliers:', error);
-    throw error;
+    return { success: false, error: error.message };
+  }
+};
+
+// Remove from favorites
+export const removeFromFavorites = async (userId, supplierId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const favorites = userData.favorites || [];
+      const updatedFavorites = favorites.filter(id => id !== supplierId);
+      
+      await updateDoc(userRef, { favorites: updatedFavorites });
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Get user favorites
+export const getUserFavorites = async (userId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      return { success: true, data: userData.favorites || [] };
+    }
+    
+    return { success: true, data: [] };
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 };

@@ -2,91 +2,88 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Header from './components/common/Header';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
+import Layout from './components/layout/Layout';
+
+// Pages
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Suppliers from './pages/Suppliers';
 import Profile from './pages/Profile';
-import LoadingSpinner from './components/common/LoadingSpinner';
+
+// Auth Components
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import SupplierProfile from './components/supplier/SupplierProfile';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingSpinner size="lg" text="Loading..." />;
-  }
-  
+  const { currentUser } = useAuth();
   return currentUser ? children : <Navigate to="/login" />;
 };
 
-// Public Route Component (redirect if already logged in)
+// Public Route Component (redirect to dashboard if logged in)
 const PublicRoute = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingSpinner size="lg" text="Loading..." />;
-  }
-  
+  const { currentUser } = useAuth();
   return !currentUser ? children : <Navigate to="/dashboard" />;
 };
 
 function AppContent() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/suppliers" element={<Suppliers />} />
-          
-          {/* Auth Routes */}
-          <Route path="/login" element={
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Layout><Home /></Layout>} />
+        <Route path="/suppliers" element={<Layout><Suppliers /></Layout>} />
+        <Route path="/supplier/:id" element={<Layout><SupplierProfile /></Layout>} />
+        
+        {/* Auth Routes */}
+        <Route 
+          path="/login" 
+          element={
             <PublicRoute>
               <Login />
             </PublicRoute>
-          } />
-          <Route path="/register" element={
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
             <PublicRoute>
               <Register />
             </PublicRoute>
-          } />
-          
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={
+          } 
+        />
+
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
             <ProtectedRoute>
-              <Dashboard />
+              <Layout><Dashboard /></Layout>
             </ProtectedRoute>
-          } />
-          <Route path="/profile" element={
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
             <ProtectedRoute>
-              <Profile />
+              <Layout><Profile /></Layout>
             </ProtectedRoute>
-          } />
-          <Route path="/favorites" element={
-            <ProtectedRoute>
-              <Suppliers favoritesOnly={true} />
-            </ProtectedRoute>
-          } />
-          
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </main>
-    </div>
+          } 
+        />
+
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
   );
 }
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

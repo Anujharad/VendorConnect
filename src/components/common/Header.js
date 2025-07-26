@@ -1,156 +1,135 @@
 // src/components/common/Header.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, Heart, Store } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { logoutUser } from '../../services/auth';
+import { Menu, X, User, LogOut, Heart, Home } from 'lucide-react';
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { currentUser, userProfile } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      await logoutUser();
+    const result = await logoutUser();
+    if (result.success) {
       navigate('/');
-    } catch (error) {
-      console.error('Error logging out:', error);
     }
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Store className="h-8 w-8 text-orange-500" />
-            <span className="text-xl font-bold text-gray-900">VendorConnect</span>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">VS</span>
+            </div>
+            <span className="text-xl font-bold text-gray-800">VendorSupply</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link to="/suppliers" className="text-gray-700 hover:text-orange-500 transition-colors">
-              Find Suppliers
-            </Link>
-            {currentUser && (
+          <nav className="hidden md:flex items-center space-x-4">
+            {currentUser ? (
               <>
-                <Link to="/dashboard" className="text-gray-700 hover:text-orange-500 transition-colors">
-                  Dashboard
+                <Link to="/dashboard" className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                  <Home size={16} />
+                  <span>Dashboard</span>
                 </Link>
-                <Link to="/favorites" className="text-gray-700 hover:text-orange-500 transition-colors flex items-center">
-                  <Heart className="h-4 w-4 mr-1" />
-                  Favorites
+                <Link to="/suppliers" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                  Suppliers
+                </Link>
+                <Link to="/profile" className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                  <User size={16} />
+                  <span>{userProfile?.name || 'Profile'}</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 text-gray-700 hover:text-red-600 px-3 py-2 rounded-md"
+                >
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                  Login
+                </Link>
+                <Link to="/register" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                  Register
                 </Link>
               </>
             )}
           </nav>
 
-          {/* User Menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            {currentUser ? (
-              <div className="flex items-center space-x-4">
-                <Link 
-                  to="/profile" 
-                  className="flex items-center space-x-2 text-gray-700 hover:text-orange-500 transition-colors"
-                >
-                  <User className="h-5 w-5" />
-                  <span>{userProfile?.name || 'Profile'}</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-red-500 transition-colors"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            ) : (
-              <div className="flex space-x-4">
-                <Link 
-                  to="/login" 
-                  className="text-gray-700 hover:text-orange-500 transition-colors"
-                >
-                  Login
-                </Link>
-                <Link 
-                  to="/register" 
-                  className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
-                >
-                  Register
-                </Link>
-              </div>
-            )}
-          </div>
-
           {/* Mobile menu button */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2"
+            onClick={toggleMobileMenu}
+            className="md:hidden p-2 rounded-md text-gray-700 hover:text-blue-600"
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <nav className="flex flex-col space-y-4">
-              <Link 
-                to="/suppliers" 
-                className="text-gray-700 hover:text-orange-500 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Find Suppliers
-              </Link>
-              
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <nav className="flex flex-col space-y-2">
               {currentUser ? (
                 <>
                   <Link 
                     to="/dashboard" 
-                    className="text-gray-700 hover:text-orange-500 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Dashboard
+                    <Home size={16} />
+                    <span>Dashboard</span>
                   </Link>
                   <Link 
-                    to="/favorites" 
-                    className="text-gray-700 hover:text-orange-500 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    to="/suppliers" 
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md block"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Favorites
+                    Suppliers
                   </Link>
                   <Link 
                     to="/profile" 
-                    className="text-gray-700 hover:text-orange-500 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Profile
+                    <User size={16} />
+                    <span>{userProfile?.name || 'Profile'}</span>
                   </Link>
                   <button
                     onClick={() => {
                       handleLogout();
-                      setIsMenuOpen(false);
+                      setIsMobileMenuOpen(false);
                     }}
-                    className="text-left text-gray-700 hover:text-red-500 transition-colors"
+                    className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-left w-full"
                   >
-                    Logout
+                    <LogOut size={16} />
+                    <span>Logout</span>
                   </button>
                 </>
               ) : (
                 <>
                   <Link 
                     to="/login" 
-                    className="text-gray-700 hover:text-orange-500 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md block"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link 
                     to="/register" 
-                    className="text-gray-700 hover:text-orange-500 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 block text-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Register
                   </Link>

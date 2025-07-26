@@ -1,29 +1,39 @@
 // src/hooks/useSuppliers.js
 import { useState, useEffect } from 'react';
-import { getSuppliers } from '../services/firestore';
+import { getSuppliers, getSuppliersByCategory } from '../services/firestore';
 
-export const useSuppliers = (filters = {}) => {
+export const useSuppliers = (category = null) => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchSuppliers = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        setLoading(true);
-        setError(null);
-        const suppliersData = await getSuppliers(filters);
-        setSuppliers(suppliersData);
+        let result;
+        if (category) {
+          result = await getSuppliersByCategory(category);
+        } else {
+          result = await getSuppliers();
+        }
+        
+        if (result.success) {
+          setSuppliers(result.data);
+        } else {
+          setError(result.error);
+        }
       } catch (err) {
-        setError(err.message);
-        console.error('Error fetching suppliers:', err);
+        setError('Failed to fetch suppliers');
       } finally {
         setLoading(false);
       }
     };
 
     fetchSuppliers();
-  }, [filters.category, filters.city, filters.rating]);
+  }, [category]);
 
   return { suppliers, loading, error, refetch: () => fetchSuppliers() };
 };

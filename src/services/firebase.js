@@ -3,23 +3,21 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Replace with your Firebase config
+// Replace with your Firebase config from Project Settings
 const firebaseConfig = {
-  apiKey: "AIzaSyBjR9GPKS1HedpoRQavl2pYJ1jvkyllYmc",
-  authDomain: "vendor-supplier-platform.firebaseapp.com",
-  projectId: "vendor-supplier-platform",
-  storageBucket: "vendor-supplier-platform.firebasestorage.app",
-  messagingSenderId: "966467897196",
-  appId: "1:966467897196:web:0cb0712733591db862d549"
+  apiKey: "AIzaSyAS1vUJTvKb4quTfxKJ6eUEnyJL4oFlaP8",
+  authDomain: "vendor-supplier-platform-99365.firebaseapp.com",
+  projectId: "vendor-supplier-platform-99365",
+  storageBucket: "vendor-supplier-platform-99365.firebasestorage.app",
+  messagingSenderId: "999452203611",
+  appId: "1:999452203611:web:3d2b734dbe84bc6e9c3d7e"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Auth and get a reference to the service
+// Initialize Firebase services
 export const auth = getAuth(app);
-
-// Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
 
 export default app;

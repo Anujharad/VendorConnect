@@ -2,10 +2,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../services/firebase';
-import { getUserProfile } from '../services/firestore';
+import { getUserProfile } from '../services/auth';
 
 const AuthContext = createContext();
 
+// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -21,19 +22,17 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      
       if (user) {
-        try {
-          const profile = await getUserProfile(user.uid);
-          setUserProfile(profile);
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
+        setCurrentUser(user);
+        // Get user profile from Firestore
+        const profileResult = await getUserProfile(user.uid);
+        if (profileResult.success) {
+          setUserProfile(profileResult.data);
         }
       } else {
+        setCurrentUser(null);
         setUserProfile(null);
       }
-      
       setLoading(false);
     });
 
