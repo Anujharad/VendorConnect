@@ -104,6 +104,28 @@ const SupplierCard = ({ supplier }) => {
           </p>
         )}
 
+        {/* Products */}
+        {supplier.products && supplier.products.length > 0 && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 mb-2">Available Products:</p>
+            <div className="flex flex-wrap gap-1">
+              {supplier.products.slice(0, 3).map((product, index) => (
+                <span
+                  key={index}
+                  className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-md"
+                >
+                  {product}
+                </span>
+              ))}
+              {supplier.products.length > 3 && (
+                <span className="text-xs text-gray-500">
+                  +{supplier.products.length - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Location */}
         <div className="flex items-center space-x-2 text-gray-600 mb-3">
           <MapPin size={16} />

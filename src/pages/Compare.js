@@ -61,6 +61,25 @@ const Compare = () => {
       )),
     },
     {
+      label: "Products",
+      values: comparedSuppliers.map((s) => (
+        <div className="flex flex-col space-y-1">
+          {s.products ? (
+            s.products.map((product, idx) => (
+              <span
+                key={idx}
+                className="inline-block bg-blue-50 text-blue-700 text-sm px-2 py-1 rounded-md mb-1"
+              >
+                {product}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-400">No products listed</span>
+          )}
+        </div>
+      )),
+    },
+    {
       label: "Location",
       values: comparedSuppliers.map((s) => (
         <div className="flex items-center space-x-1">
