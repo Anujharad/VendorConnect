@@ -13,7 +13,7 @@ const Footer = () => {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">VS</span>
               </div>
-              <span className="text-xl font-bold">VendorSupply</span>
+              <span className="text-xl font-bold">Vendor Connect</span>
             </div>
             <p className="text-gray-300 text-sm">
               Connecting Indian street vendors with trusted local suppliers for fresh raw materials.
@@ -55,7 +55,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-300">
-          <p>&copy; 2025 VendorSupply. All rights reserved.</p>
+          <p>&copy; 2025 Vendor Connect. All rights reserved.</p>
         </div>
       </div>
     </footer>
