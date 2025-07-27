@@ -46,7 +46,7 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold mb-4">Contact</h3>
             <div className="space-y-2 text-sm text-gray-300">
-              <p>Email: support@vendorsupply.com</p>
+              <p>Email: support@vendorconnect.com</p>
               <p>Phone: +91 98765 43210</p>
               <p>Address: Mumbai, Maharashtra, India</p>
             </div>
