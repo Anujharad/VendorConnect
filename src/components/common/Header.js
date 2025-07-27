@@ -28,9 +28,9 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">VS</span>
+              <span className="text-white font-bold text-sm">VC</span>
             </div>
-            <span className="text-xl font-bold text-gray-800">VendorSupply</span>
+            <span className="text-xl font-bold text-gray-800">Vendor Connect</span>
           </Link>
 
           {/* Desktop Navigation */}

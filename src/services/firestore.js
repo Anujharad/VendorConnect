@@ -160,7 +160,11 @@ export const updateLoyaltyStatus = async (vendorId, supplierId) => {
 // Create or update vendor-supplier relationship
 export const createRelationship = async (vendorId, supplierId) => {
   try {
-    const relationshipRef = doc(db, "relationships", `${vendorId}_${supplierId}`);
+    const relationshipRef = doc(
+      db,
+      "relationships",
+      `${vendorId}_${supplierId}`
+    );
     const relationshipDoc = await getDoc(relationshipRef);
 
     if (!relationshipDoc.exists()) {
@@ -184,7 +188,11 @@ export const createRelationship = async (vendorId, supplierId) => {
 // Get relationship status
 export const getRelationshipStatus = async (vendorId, supplierId) => {
   try {
-    const relationshipRef = doc(db, "relationships", `${vendorId}_${supplierId}`);
+    const relationshipRef = doc(
+      db,
+      "relationships",
+      `${vendorId}_${supplierId}`
+    );
     const relationshipDoc = await getDoc(relationshipRef);
 
     if (relationshipDoc.exists()) {
@@ -198,9 +206,17 @@ export const getRelationshipStatus = async (vendorId, supplierId) => {
 };
 
 // Update relationship metrics after order
-export const updateRelationshipMetrics = async (vendorId, supplierId, orderAmount) => {
+export const updateRelationshipMetrics = async (
+  vendorId,
+  supplierId,
+  orderAmount
+) => {
   try {
-    const relationshipRef = doc(db, "relationships", `${vendorId}_${supplierId}`);
+    const relationshipRef = doc(
+      db,
+      "relationships",
+      `${vendorId}_${supplierId}`
+    );
     const relationshipDoc = await getDoc(relationshipRef);
 
     if (relationshipDoc.exists()) {
@@ -216,6 +232,24 @@ export const updateRelationshipMetrics = async (vendorId, supplierId, orderAmoun
     }
 
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Get vendor relationships
+export const getVendorRelationships = async (vendorId) => {
+  try {
+    const relationshipsRef = collection(db, "relationships");
+    const q = query(relationshipsRef, where("vendorId", "==", vendorId));
+    const snapshot = await getDocs(q);
+    const relationships = [];
+
+    snapshot.forEach((doc) => {
+      relationships.push({ id: doc.id, ...doc.data() });
+    });
+
+    return { success: true, data: relationships };
   } catch (error) {
     return { success: false, error: error.message };
   }
