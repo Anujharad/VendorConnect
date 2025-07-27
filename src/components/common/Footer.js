@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">VS</span>
+                <span className="text-white font-bold text-sm">VC</span>
               </div>
               <span className="text-xl font-bold">Vendor Connect</span>
             </div>
