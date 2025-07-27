@@ -51,7 +51,7 @@ const Home = () => {
       name: 'Rajesh Kumar',
       business: 'Kumar Vegetable Store',
       city: 'Mumbai',
-      text: 'VendorSupply helped me find reliable suppliers for my shop. The quality is consistent and prices are competitive.',
+      text: 'Vendor Connect helped me find reliable suppliers for my shop. The quality is consistent and prices are competitive.',
       rating: 5
     },
     {
